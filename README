@@ -1,0 +1,53 @@
+WoWCal
+======
+Export World of Warcraft Calendar to iCal. 
+Converts JSON formatted data requested from the World of Warcraft Armory into basic iCal format.
+
+Requirements:
+-------------
+PHP5 - Requires PHP5.2.
+
+Usage:
+------
+wowcal.php [OPTION]...  
+   
+Mandatory arguments to long options are mandatory for short options too.  
+   
+Startup:  
+	-V, --version           	display the version of WoWCal and exit.  
+	-f, --file <file>     		export to filename.  
+	-l, --logfile <file>		save log  
+	-v, --verbose           	be verbose.  
+   
+Battle.net:  
+	-u, --username <username> 	account username.  
+	-p, --password <password>   account password.  
+   
+World of Warcraft Armory:  
+	-c, --character <character> character name.  
+	-r, --realm <realm>       	realm name.  
+   
+Calendar:  
+	-m,  --month                selected month. M-MM.  
+								* current month default.  
+	-y,  --year         		selected year. YYYY.  
+								* current year default.  
+	-ut, --user-type			user calendar types. comma separated.  
+		dungeon*  
+		meeting*  
+		other*  
+		pvp*  
+		raid*  
+	-wt, --world-type			world calendar types. comma separated.  
+		bg						* indicates default.  
+		darkmoon  
+		holiday  
+		holiday_weekly  
+		player*  
+		raid_lockout  
+		raid_reset  
+   
+Information:
+------------
+Ryon Sherman's Blog
+http://ryonsherman.wordpress.com/2009/05/21/export-world-of-warcraft-calendar-to-ical/

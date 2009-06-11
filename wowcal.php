@@ -1,7 +1,27 @@
 <?php
+/**
+ * WoWCal: Export World of Warcraft Calendar to iCal.
+ * 
+ * Converts JSON formatted data requested from the World of Warcraft Armory into basic iCal format.
+ * 
+ * PHP version 5
+ * 
+ * Ryon Sherman (http://ryonsherman.wordpress.com)
+ * Copyright 2009, Ryon Sherman (ryon.sherman@gmail.com)
+ * 
+ * Licensed under the MIT License
+ * Redistributions of files must retain the above copyright notice.
+ * 
+ * @filesource
+ * @copyright 	Copyright 2009, Ryon Sherman (ryon.sherman@gmail.com)
+ * @link 		http://ryonsherman.wordpress.com Ryon Sherman's Blog
+ * @package 	wowcal
+ * @version 	1.0.1
+ * @license 	http://www.opensource.org/licenses/mit-license.php The MIT License
+ */
 
 define('SCRIPT_NAME', $_SERVER['argv'][0]);
-define('SCRIPT_VERSION', '1.0');
+define('SCRIPT_VERSION', '1.0.1');
 
 define('URL_BASE_ARMORY', 'http://www.wowarmory.com/');
 define('URL_BASE_LOGIN', 'https://us.battle.net/');
@@ -14,16 +34,55 @@ define('URL_LOGIN', 'login/login.xml');
 
 $WoWCal = new WoWCal;
 
+/**
+ * Core Event class.
+ * 
+ * Creates a basic placeholder event.
+ * 
+ * @package 	wowcal
+ */
 class WoWCal_Event {
 		
+	/**
+	 * Calendar type.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $calendar_type;
 	
-	public $summary;
-	public $start;	
-	
+	/**
+	 * Event description.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
 	public $description;
 	
-	public function __construct($event) {		
+	/**
+	 * Event summary.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
+	public $summary;
+	
+	/**
+	 * Event start timestamp.
+	 * 
+	 * @var		integer
+	 * @access	public
+	 */
+	public $start;	
+	
+	/**
+	 * Constructor. 
+	 * Assigns default values for event.
+	 * 
+	 * @param	object	$event	
+	 * @access	public
+	 */
+	public function __construct($event) {
 		$this->calendar_type = $event->calendarType;
 		$this->summary = $event->summary;
 		$this->start = floor($event->start / 1000);
@@ -31,10 +90,30 @@ class WoWCal_Event {
 		
 }
 
+/**
+ * World Event Class.
+ * 
+ * Extends Core Event. Includes world event details.
+ * 
+ * @package		wowcal
+ */
 class WoWCal_WorldEvent extends WoWCal_Event {
 	
+	/**
+	 * Event end timestamp.
+	 * 
+	 * @var		integer
+	 * @access	public
+	 */
 	public $end;
 		
+	/**
+	 * Constructor. 
+	 * Assigns extended values for world event.
+	 * 
+	 * @param	object	$event	
+	 * @access	public
+	 */
 	public function __construct($event) {
 		parent::__construct($event);
 		
@@ -44,8 +123,21 @@ class WoWCal_WorldEvent extends WoWCal_Event {
 	
 }
 
+/**
+ * User Event Class.
+ * 
+ * Extends Core Event. Includes user event details.
+ * 
+ * @package		wowcal
+ */
 class WoWCal_UserEvent extends WoWCal_Event {
 	
+	/**
+	 * Status translation table.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $STATUSES = array(
 		'signedUp' => 'Signed Up',
 		'notSignedUp' => 'Not Signed Up',
@@ -54,16 +146,65 @@ class WoWCal_UserEvent extends WoWCal_Event {
 		'available' => 'Available',
 	);
 	
+	/**
+	 * Event identification number.
+	 * 
+	 * @var		integer
+	 * @access	private
+	 */
 	private $id;
+	
+	/**
+	 * Name of event type.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $type;
+	
+	/**
+	 * Event lockout toggle.
+	 * 
+	 * @var		boolean
+	 * @access	public
+	 */
 	public $locked = false;
 		
+	/**
+	 * Name of event owner.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
 	public $owner;
+	/**
+	 * Name of event inviter.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
+	public $inviter;
+	/**
+	 * Moderator status.
+	 * True if you are a moderator of the event.
+	 * 
+	 * @var		boolean
+	 * @access	public
+	 */
 	public $moderator = false;
 	
-	public $inviter;
+	/**
+	 * Your status to the event.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
 	public $status;
 	
+	/**
+	 * Constructor. 
+	 * Assigns extended values for user event. 
+	 */
 	public function __construct($event, $detail = null) {
 		parent::__construct($event);
 		
@@ -86,8 +227,21 @@ class WoWCal_UserEvent extends WoWCal_Event {
 		
 }
 
+/**
+ * Event invitee class.
+ * 
+ * Creates an object of event invitee details.
+ * 
+ * @package		wowcal
+ */
 class WoWCal_Invitee {
 	
+	/**
+	 * Status translation table.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $STATUSES = array(
 		'signedUp' => 'Signed Up',
 		'notSignedUp' => 'Not Signed Up',
@@ -96,11 +250,34 @@ class WoWCal_Invitee {
 		'available' => 'Available',
 	);
 	
+	/**
+	 * Invitee name.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
 	public $name;
+	/**
+	 * Moderator status.
+	 * True if the invitee is a moderator of the event.
+	 * 
+	 * @var		boolean
+	 * @access	public
+	 */
 	public $moderator = false;
 	
+	/**
+	 * Invitees status to the event.
+	 * 
+	 * @var		string
+	 * @access	public
+	 */
 	public $status;	
 	
+	/**
+	 * Constructor. 
+	 * Assigns default values for invitee.
+	 */
 	public function __construct($invitee) {
 		$this->name = $invitee->invitee;
 		$this->moderator = ($invitee->moderator) ? true : false;
@@ -110,8 +287,22 @@ class WoWCal_Invitee {
 	
 }
 
+/**
+ * Main Driver class.
+ * 
+ * Creates an object of methods used to export JSON formatted data from
+ * the World of Warcraft Armory into iCal format.
+ * 
+ * @package		wowcal
+ */
 class WoWCal {
 	
+	/**
+	 * Required options.
+	 * 
+	 * @var		array
+	 * @access 	private
+	 */
 	private $REQUIRED_OPTIONS = array(
 		'username',
 		'password',
@@ -119,6 +310,12 @@ class WoWCal {
 		'realm',
 	);
 	
+	/**
+	 * World calendar translation table.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $CALENDAR_TYPES_WORLD = array(
 		'player' => 'player',
 		'holiday' => 'holiday',
@@ -128,6 +325,12 @@ class WoWCal {
 		'raid_reset' => 'raidReset',
 		'holiday_weekly' => 'holidayWeekly',
 	);
+	/**
+	 * User calendar translation table.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $CALENDAR_TYPES_USER = array(
 		'raid',
 		'dungeon',
@@ -136,21 +339,91 @@ class WoWCal {
 		'other',
 	);
 	
+	/**
+	 * Internal cookie storage.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $COOKIE;
+	
+	/**
+	 * Internal log storage.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $LOG;
 	
+	/**
+	 * Verbose output.
+	 * 
+	 * @var		boolean
+	 * @access	private
+	 */
 	private $verbose = false;
 	
+	/**
+	 * Log file name.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $log_file;
+	/**
+	 * Calendar file name.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $calendar_file;
 	
+	/**
+	 * Calendar month.
+	 * 
+	 * @var		integer
+	 * @access	private
+	 */
 	private $month;
+	/**
+	 * Calendar year
+	 * 
+	 * @var		integer
+	 * @access	private
+	 */
 	private $year;
+	
+	/**
+	 * Default world calendars toggle.
+	 * Determine if default world calendars should be used.
+	 * 
+	 * @var		boolean
+	 * @access	private
+	 */
 	private $default_world_calendars = true;
+	/**
+	 * List of default world calendars.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $world_calendars = array(
 		'player',
 	);
+	/**
+	 * Default user calendars toggle.
+	 * Determine if default user calendars should be used.
+	 * 
+	 * @var		boolean
+	 * @access	private
+	 */
 	private $default_user_calendars = true;
+	/**
+	 * List of default user calendars.
+	 * 
+	 * @var		array
+	 * @access	private
+	 */
 	private $user_calendars = array(
 		'dungeon',
 		'meeting',
@@ -159,11 +432,41 @@ class WoWCal {
 		'raid',
 	);
 	
+	/**
+	 * Account username.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $username;
+	/**
+	 * Account password.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $password;
+	/**
+	 * Character name.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $character;
+	/**
+	 * Character realm.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
 	private $realm;
 	
+	/**
+	 * Constructor.  
+	 * Assigns default values for class.
+	 * 
+	 * @access public
+	 */
 	public function __construct() {		
 		$this->month = date('n');
 		$this->year = date('Y');
@@ -186,6 +489,12 @@ class WoWCal {
 		$this->log('WoWCal Completed.');
 	}
 		
+	/**
+	 * Parse options.
+	 * Execute specific functions based on user input.
+	 * 
+	 * @access private
+	 */
 	private function parse_options() {
 		if($_SERVER['argc'] <= 1) $this->print_usage();
 		
@@ -239,29 +548,42 @@ class WoWCal {
 		}
 	}
 	
+	/**
+	 * Login.
+	 * Perform login action.
+	 * 
+	 * @access private
+	 */
 	private function login() {		
 		$this->log('Logging In...');
 		
-		$post = array(
+		$parameters = array(
 			'accountName' => $this->username,
-			'password' => $this->password,
+			'password' => $this->password,			
 			'ref' => URL_BASE_ARMORY.'index.xml',
 			'app' => 'armory',
-		);		
-		$response = $this->request(URL_BASE_LOGIN.URL_LOGIN, $post);		
+		);	
+		$response = $this->request(URL_BASE_LOGIN.URL_LOGIN, $parameters);		
 		
-		if(strstr($response, 'error.form.login')) {
+		if(empty($response) or strstr($response, 'error.form.login')) {
 			$this->log('Login Failed! Exiting.');
 			$this->quit();
 		} else $this->log('Login Successful!');
 	}
 	
+	/**
+	 * Get User Calendar Events.
+	 * Retreive user calendar events.
+	 * 
+	 * @return	array	events
+	 * @access	private
+	 */
 	private function get_user_calendar_events() {
-		$post = array(
+		$parameters = array(
 			'month' => $this->month,
 			'year' => $this->year,
 		);
-		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_USER, $post);
+		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_USER, $parameters);
 		$json = $this->json($response);
 		
 		$events = array();
@@ -293,6 +615,13 @@ class WoWCal {
 		return $events;
 	}
 	
+	/**
+	 * Get World Calendar Events.
+	 * Retreive world calendar events.
+	 * 
+	 * @return	array	events
+	 * @access	private
+	 */
 	private function get_world_calendar_events() {
 		$events = array();
 		foreach($this->world_calendars as $type) {
@@ -301,12 +630,12 @@ class WoWCal {
 			if(in_array($type, array_keys($this->CALENDAR_TYPES_WORLD))) {
 				$this->log('Retreiving World Calendar: '.$type.'...');
 		
-				$post = array(
+				$parameters = array(
 					'type' => $this->CALENDAR_TYPES_WORLD[$type],
 					'month' => $this->month,
 					'year' => $this->year,
 				);				
-				$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_WORLD, $post);
+				$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_WORLD, $parameters);
 				$json = $this->json($response);
 				
 				if(is_object($json)) {
@@ -325,11 +654,29 @@ class WoWCal {
 		return $events;
 	}
 	
+	/**
+	 * Get Event Detail.
+	 * Retreive details on a specific event.
+	 * 
+	 * @param	integer	$id	Event identification number
+	 * @return	object	JSON data
+	 * @access	private
+	 */
 	private function get_event_detail($id) {
-		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_DETAIL, array('e' => $id));
+		$parameters = array(
+			'e' => $id,
+		);
+		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_DETAIL, $parameters);
 		return $this->json($response);
 	}
 	
+	/**
+	 * Create iCal.
+	 * Creates an iCal file of passed events.
+	 * 
+	 * @param	array	$events	Array of events
+	 * @access	private
+	 */
 	private function create_ical($events = array()) {
 		$this->log('Creating iCal ('.count($events).' events)...');
 		
@@ -391,10 +738,27 @@ class WoWCal {
 		$this->log('Calendar Exported!');
 	}
 	
+	/**
+	 * JSON.
+	 * Converts JSON formatted data to stdClass object.
+	 * 
+	 * @param	string	$string JSON formatted string.
+	 * @return	object	JSON data
+	 * @access	private
+	 */
 	private function json($string) {
 		return json_decode(substr($string, 13, -2));
 	}
 	
+	/**
+	 * Request.
+	 * Performs HTTP request action.
+	 * 
+	 * @param	string	$url Target URL for request
+	 * @param	array	$parameters Array of parameters to pass to target
+	 * @return	string	Response text
+	 * @access	private
+	 */
 	private function request($url, $parameters = array()) {
 		if(!$this->COOKIE)
 			$this->COOKIE = tempnam("/tmp", "CURLCOOKIE");
@@ -403,15 +767,16 @@ class WoWCal {
 			'cn' => $this->character,
 			'r' => $this->realm,
 		);
-		$parameters = array_merge($defaults, $parameters);
+		if($parameters)
+			$parameters = array_merge($defaults, $parameters);
 		
-		$post = null;
+		$params = null;
 		foreach($parameters as $parameter => $value)
-			$post .= $parameter.'='.$value.'&';
-		$post = substr($post, 0, -1);
+			$params .= $parameter.'='.$value.'&';
+		$params = substr($params, 0, -1);
 								
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url.'?'.$post);
+		curl_setopt($ch, CURLOPT_URL, $url.'?'.$params);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 Gecko/20070219 Firefox/2.0.0.2');
 		
@@ -424,17 +789,23 @@ class WoWCal {
 		
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+				
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
 		
-		if($post) {
-			curl_setopt($ch, CURLOPT_POST, true);
-		}
-		
-		$response = curl_exec($ch);		
+		$response = curl_exec($ch);
 		curl_close($ch);
 
 		return $response;
 	}
 	
+	/**
+	 * Log.
+	 * Logs data.
+	 * 
+	 * @param	string	$message Message to write to log
+	 * @access	private
+	 */
 	private function log($message) {
 		$message = date('M d H:i:s').": ".$message."\n";		
 		$this->LOG .= $message;
@@ -442,6 +813,12 @@ class WoWCal {
 		if($this->verbose) echo $message;
 	}
 	
+	/**
+	 * Quit.
+	 * Perform last minute actions and exit.
+	 * 
+	 * @access	private
+	 */
 	private function quit() {
 		if($this->log_file) {			
 			$this->log('Writing Log to File: '.$this->log_file);
@@ -450,6 +827,13 @@ class WoWCal {
 		exit();
 	}
 	
+	/**
+	 * Print Usage.
+	 * Output script usage.
+	 * 
+	 * @param	boolean	$verbose	Output long or short usage
+	 * @access	private
+	 */
 	private function print_usage($verbose = false) {		
 		print ($verbose) ? 
 "
