@@ -4,7 +4,7 @@
  * 
  * Converts JSON formatted data requested from the World of Warcraft Armory into basic iCal format.
  * 
- * PHP version 5
+ * PHP 4 >= 4.0.2, PHP 5
  * 
  * Ryon Sherman (http://ryonsherman.wordpress.com)
  * Copyright 2009, Ryon Sherman (ryon.sherman@gmail.com)
@@ -16,12 +16,12 @@
  * @copyright 	Copyright 2009, Ryon Sherman (ryon.sherman@gmail.com)
  * @link 		http://ryonsherman.wordpress.com Ryon Sherman's Blog
  * @package 	wowcal
- * @version 	1.0.1
+ * @version 	1.0.2
  * @license 	http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
 define('SCRIPT_NAME', $_SERVER['argv'][0]);
-define('SCRIPT_VERSION', '1.0.1');
+define('SCRIPT_VERSION', '1.0.2');
 
 define('URL_BASE_ARMORY', 'http://www.wowarmory.com/');
 define('URL_BASE_LOGIN', 'https://us.battle.net/');
@@ -584,6 +584,12 @@ class WoWCal {
 			'year' => $this->year,
 		);
 		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_USER, $parameters);
+		
+		if(strstr($response, 'layout/maintenance.xsl')) {
+			$this->log('Armory currently under maintenance...Please try again later');
+			$this->quit();
+		}
+		
 		$json = $this->json($response);
 		
 		$events = array();
@@ -636,6 +642,12 @@ class WoWCal {
 					'year' => $this->year,
 				);				
 				$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_WORLD, $parameters);
+				
+				if(strstr($response, 'layout/maintenance.xsl')) {
+					$this->log('Armory currently under maintenance...Please try again later');
+					$this->quit();
+				}
+		
 				$json = $this->json($response);
 				
 				if(is_object($json)) {
@@ -772,7 +784,7 @@ class WoWCal {
 		
 		$params = null;
 		foreach($parameters as $parameter => $value)
-			$params .= $parameter.'='.$value.'&';
+			$params .= $parameter.'='.urlencode($value).'&';
 		$params = substr($params, 0, -1);
 								
 		$ch = curl_init();
