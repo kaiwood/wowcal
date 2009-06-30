@@ -5,7 +5,8 @@ Converts JSON formatted data requested from the World of Warcraft Armory into ba
 
 Requirements:
 -------------
-PHP5 - Requires PHP5.2.
+PHP 4 >= 4.0.2, PHP 5
+PHP cURL extension
 
 Usage:
 ------
@@ -49,5 +50,5 @@ Calendar:
    
 Information:
 ------------
-Ryon Sherman's Blog
+Ryon Sherman's Blog - Export World of Warcraft Calendar To iCal
 http://ryonsherman.wordpress.com/2009/05/21/export-world-of-warcraft-calendar-to-ical/
