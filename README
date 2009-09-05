@@ -5,7 +5,7 @@ Converts JSON formatted data requested from the World of Warcraft Armory into ba
 
 Requirements:
 -------------
-PHP 4 >= 4.0.2, PHP 5
+PHP 5
 PHP cURL extension
 
 Usage:
