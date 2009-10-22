@@ -24,6 +24,7 @@ define('SCRIPT_NAME', $_SERVER['argv'][0]);
 define('SCRIPT_VERSION', '1.0.2');
 
 define('URL_BASE_ARMORY', 'http://www.wowarmory.com/');
+define('URL_BASE_ARMORY_EU', 'http://eu.wowarmory.com/');
 define('URL_BASE_LOGIN', 'https://us.battle.net/');
 
 define('URL_CALENDAR_USER', 'vault/calendar/month-user.json');
@@ -364,6 +365,22 @@ class WoWCal {
 	private $verbose = false;
 	
 	/**
+	 * Use european realms.
+	 * 
+	 * @var		boolean
+	 * @access	private
+	 */
+	private $european = false;
+	
+	/**
+	 * Armory URL base.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
+	private $url_base_armory;
+	
+	/**
 	 * Log file name.
 	 * 
 	 * @var		string
@@ -472,6 +489,12 @@ class WoWCal {
 		$this->year = date('Y');
 		
 		$this->parse_options();	
+		
+		if ($this->european) {
+			$this->url_base_armory = URL_BASE_ARMORY_EU;
+		} else {
+			$this->url_base_armory = URL_BASE_ARMORY;
+		}
 				
 		$this->log('WoWCal Started.');		
 		$this->login();		
@@ -529,6 +552,8 @@ class WoWCal {
 						$this->user_calendars = array();
 				break;
 				
+				case '-e': case '--european': $this->european = true; break;
+				
 				case '-v': case '--verbose': $this->verbose = true; break;				
 				
 				case '-V': case '--version':
@@ -560,7 +585,7 @@ class WoWCal {
 		$parameters = array(
 			'accountName' => $this->username,
 			'password' => $this->password,			
-			'ref' => URL_BASE_ARMORY.'index.xml',
+			'ref' => $this->url_base_armory.'index.xml',
 			'app' => 'armory',
 		);	
 		$response = $this->request(URL_BASE_LOGIN.URL_LOGIN, $parameters);		
@@ -583,7 +608,7 @@ class WoWCal {
 			'month' => $this->month,
 			'year' => $this->year,
 		);
-		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_USER, $parameters);
+		$response = $this->request($this->url_base_armory.URL_CALENDAR_USER, $parameters);
 		
 		if(strstr($response, 'layout/maintenance.xsl')) {
 			$this->log('Armory currently under maintenance...Please try again later');
@@ -641,7 +666,7 @@ class WoWCal {
 					'month' => $this->month,
 					'year' => $this->year,
 				);				
-				$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_WORLD, $parameters);
+				$response = $this->request($this->url_base_armory.URL_CALENDAR_WORLD, $parameters);
 				
 				if(strstr($response, 'layout/maintenance.xsl')) {
 					$this->log('Armory currently under maintenance...Please try again later');
@@ -678,7 +703,7 @@ class WoWCal {
 		$parameters = array(
 			'e' => $id,
 		);
-		$response = $this->request(URL_BASE_ARMORY.URL_CALENDAR_DETAIL, $parameters);
+		$response = $this->request($this->url_base_armory.URL_CALENDAR_DETAIL, $parameters);
 		return $this->json($response);
 	}
 	
@@ -858,8 +883,9 @@ Startup:
 	-V, --version			display the version of WoWCal and exit.
 	-f, --file <file>		export to filename.
 	-l, --logfile <file>		save log
+	-e, --europe			use european realms.
 	-v, --verbose			be verbose.
-
+	
 Battle.net:
 	-u, --username <username>	account username.
 	-p, --password <password>	account password.
@@ -867,7 +893,7 @@ Battle.net:
 World of Warcraft Armory:
 	-c, --character	<character>	character name.
 	-r, --realm <realm>		realm name.
-
+	
 Calendar:
 	-m,  --month		    	selected month. M-MM. 
 					* current month default.
