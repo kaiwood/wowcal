@@ -26,6 +26,7 @@ define('SCRIPT_VERSION', '1.0.2');
 define('URL_BASE_ARMORY', 'http://www.wowarmory.com/');
 define('URL_BASE_ARMORY_EU', 'http://eu.wowarmory.com/');
 define('URL_BASE_LOGIN', 'https://us.battle.net/');
+define('URL_BASE_LOGIN_EU', 'https://eu.battle.net/');
 
 define('URL_CALENDAR_USER', 'vault/calendar/month-user.json');
 define('URL_CALENDAR_WORLD', 'vault/calendar/month-world.json');
@@ -381,6 +382,14 @@ class WoWCal {
 	private $url_base_armory;
 	
 	/**
+	 * Login URL base.
+	 * 
+	 * @var		string
+	 * @access	private
+	 */
+	private $url_base_login;
+	
+	/**
 	 * Log file name.
 	 * 
 	 * @var		string
@@ -492,8 +501,10 @@ class WoWCal {
 		
 		if ($this->european) {
 			$this->url_base_armory = URL_BASE_ARMORY_EU;
+			$this->url_base_login  = URL_BASE_LOGIN_EU;
 		} else {
 			$this->url_base_armory = URL_BASE_ARMORY;
+			$this->url_base_login  = URL_BASE_LOGIN;
 		}
 				
 		$this->log('WoWCal Started.');		
@@ -588,7 +599,7 @@ class WoWCal {
 			'ref' => $this->url_base_armory.'index.xml',
 			'app' => 'armory',
 		);	
-		$response = $this->request(URL_BASE_LOGIN.URL_LOGIN, $parameters);		
+		$response = $this->request($this->url_base_login.URL_LOGIN, $parameters);		
 		
 		if(empty($response) or strstr($response, 'error.form.login')) {
 			$this->log('Login Failed! Exiting.');
